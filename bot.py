@@ -55,7 +55,12 @@ status_emoji = {True: '✅',
 async def get_energy_val() -> dict:
     async with aiohttp.ClientSession() as session:
         async with session.get(API_URL, ssl=False) as resp:
-            json_resp = await resp.json()
+            if resp.ok:
+                json_resp = await resp.json()
+            else:
+                logger.warn(resp.status, await resp.json())
+                json_resp = {'data': None}
+    logger.debug(json_resp)
     return json_resp
 
 
@@ -75,8 +80,9 @@ async def make_inline_keyboard(data: dict):
 async def create_keyboard():
     hour = datetime.now().hour
     energy_val = await get_energy_val()
-    keyboard = await make_inline_keyboard(energy_val.get('data').get(str(hour)))
-    return keyboard
+    if energy_val.get('data'):
+        keyboard = await make_inline_keyboard(energy_val.get('data').get(str(hour)))
+        return keyboard
 
 
 async def group_detailed(group: str, data: dict):
@@ -93,9 +99,12 @@ async def group_detailed(group: str, data: dict):
     return finally_msg
 
 
-async def actual_msg() -> str:
-    return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n'\
+async def actual_msg(keyboard) -> str:
+    if keyboard:
+        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n'\
            f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
+    else:
+        return 'Немає актуальних данних на сьогодні'
 
 
 @dp.message_handler(commands=['start'])
@@ -113,7 +122,7 @@ async def take_start(message: types.Message):
 @dp.message_handler(filters.Text(equals='Стан 💡'))
 async def take_now(message: types.Message):
     keyboard = await create_keyboard()
-    msg = await actual_msg()
+    msg = await actual_msg(keyboard)
     await message.answer(msg, reply_markup=keyboard)
 
 
@@ -130,8 +139,8 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
     await query.answer('Оновлюю дані')
-    msg = await actual_msg()
     keyboard = await create_keyboard()
+    msg = await actual_msg(keyboard)
     await query.message.edit_text(msg)
     await query.message.edit_reply_markup(keyboard)
 
