@@ -1,5 +1,4 @@
 import asyncio
-import configparser
 from datetime import datetime
 
 import aiogram
@@ -7,38 +6,12 @@ import aioschedule
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import InputMediaPhoto
 
+from Config import Config
 from Logger import logger
 
+config = Config()
 
-def load_config() -> configparser.ConfigParser:
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return config
-
-
-def write_to_config(value: str):
-    config = load_config()
-    config['Telegram']['message_id'] = str(value)
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-
-
-def read_from_config() -> tuple[bool, int]:
-    config = load_config()
-    message_id = config['Telegram'].getint('message_id')
-    if message_id == 0:
-        return False, 0
-    return True, message_id
-
-
-def get_start_values() -> tuple[str, str]:
-    config = load_config()
-    bot_token = config['Telegram']['bot_token']
-    chat_id = config['Telegram']['chat_id']
-    return bot_token, chat_id
-
-
-BOT_TOKEN, CHAT_ID = get_start_values()
+BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 
 bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 
@@ -62,7 +35,7 @@ async def take_now(message: types.Message):
 
 
 async def edit_message(photo: str, actual_time):
-    status, message_id = read_from_config()
+    status, message_id = config.read_from_config()
     await bot.edit_message_media(chat_id=CHAT_ID, message_id=message_id, media=InputMediaPhoto(photo))
     await bot.edit_message_caption(chat_id=CHAT_ID, message_id=message_id, caption=actual_time)
 
@@ -88,7 +61,7 @@ async def job():
         logger.exception(e)
         if isinstance(e, aiogram.exceptions.MessageToEditNotFound):
             msg_id = await send_message(photo=photo_url, actual_time=actual_msg)
-            write_to_config(msg_id)
+            config.write_to_config(msg_id)
 
 
 async def scheduler():

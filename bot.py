@@ -8,7 +8,6 @@ from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 
 from Logger import logger
 
-
 config = Config()
 
 BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
@@ -62,7 +61,7 @@ async def group_detailed(group: str, data: dict):
     row = []
     for k, v in data.get('data').items():
         time_str = time(hour=int(k)).strftime('%H:%M')
-        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<code>{time_str}</code>"
+        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<pre>{time_str}</pre>"
         row.append(f"{time_str}{status_emoji.get(v.get(group))}")
         if len(row) == 4:
             detailed.append('|'.join(row))
@@ -112,7 +111,7 @@ async def take_group(query: types.CallbackQuery):
 
 @dp.callback_query_handler(text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    await query.answer('Оновлюю дані')
+    await query.answer('Оновлюю дані 🔄')
     keyboard = await create_keyboard()
     msg = await actual_msg(keyboard)
     await query.message.edit_text(msg)
