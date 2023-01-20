@@ -2,6 +2,7 @@ import asyncio
 import configparser
 from datetime import datetime, time
 
+import aiogram.utils.exceptions
 import aiohttp
 from aiogram import types, executor, Bot, Dispatcher, filters
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
@@ -90,12 +91,13 @@ async def group_detailed(group: str, data: dict):
     row = []
     for k, v in data.get('data').items():
         time_str = time(hour=int(k)).strftime('%H:%M')
+        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<code>{time_str}</code>"
         row.append(f"{time_str}{status_emoji.get(v.get(group))}")
         if len(row) == 4:
             detailed.append('|'.join(row))
             row = []
     detailed_str = '\n\n'.join(detailed)
-    finally_msg = f"<b><u>Група {group}</u></b>\n\n<pre>{detailed_str}</pre>"
+    finally_msg = f"<b><u>Група {group}</u></b>\n\n{detailed_str}"
     return finally_msg
 
 
@@ -133,7 +135,8 @@ async def take_group(query: types.CallbackQuery):
     energy = await get_energy_val()
     msg = await group_detailed(group, energy)
     keyboard = query.message.reply_markup
-    await query.message.edit_text(text=msg, reply_markup=keyboard)
+    await query.message.edit_text(text=msg)
+    await query.message.edit_reply_markup(reply_markup=keyboard)
 
 
 @dp.callback_query_handler(text_startswith=['upd'])
