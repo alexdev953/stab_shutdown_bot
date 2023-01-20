@@ -1,8 +1,6 @@
 import asyncio
-import configparser
 from datetime import datetime, time
-
-import aiogram.utils.exceptions
+from Config import Config
 import aiohttp
 from aiogram import types, executor, Bot, Dispatcher, filters
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
@@ -11,36 +9,9 @@ from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 from Logger import logger
 
 
-def load_config() -> configparser.ConfigParser:
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return config
+config = Config()
 
-
-def write_to_config(value: str):
-    config = load_config()
-    config['Telegram']['message_id'] = str(value)
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-
-
-def read_from_config() -> tuple[bool, int]:
-    config = load_config()
-    message_id = config['Telegram'].getint('message_id')
-    if message_id == 0:
-        return False, 0
-    return True, message_id
-
-
-def get_start_values() -> tuple[str, str, str]:
-    config = load_config()
-    bot_token = config['Telegram']['bot_token']
-    chat_id = config['Telegram']['chat_id']
-    api_url = config['Web']['url_api']
-    return bot_token, chat_id, api_url
-
-
-BOT_TOKEN, CHAT_ID, API_URL = get_start_values()
+BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 
 bot = Bot(token=BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 
