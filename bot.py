@@ -48,9 +48,9 @@ async def make_inline_keyboard(data: dict):
     return keyboard
 
 
-async def create_keyboard():
+async def create_keyboard(data=None):
     hour = datetime.now().hour
-    energy_val = await get_energy_val()
+    energy_val = await get_energy_val() if not data else data
     if energy_val.get('data'):
         keyboard = await make_inline_keyboard(energy_val.get('data').get(str(hour)))
         return keyboard
@@ -104,7 +104,7 @@ async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy = await get_energy_val()
     msg = await group_detailed(group, energy)
-    keyboard = query.message.reply_markup
+    keyboard = await create_keyboard(energy)
     await query.message.edit_text(text=msg)
     await query.message.edit_reply_markup(reply_markup=keyboard)
 
@@ -125,6 +125,7 @@ async def send_admin(update: types.Update, error):
     """
     if not isinstance(error, asyncio.exceptions.TimeoutError):
         logger.exception(error)
+        logger.error(update.as_json())
         admin_list = [379210271]
         name_error = f'{error}'.replace('<', '').replace('>', '')
         message_to_admin = f"""Сталася помилка в боті:\n{name_error}"""
