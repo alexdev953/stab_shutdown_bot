@@ -45,6 +45,7 @@ async def make_inline_keyboard(data: dict):
             keyboard.row(*width)
             width = []
     keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄', callback_data='upd'))
+    keyboard.add(InlineKeyboardButton(text='Дізнатися групу', url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
@@ -73,10 +74,16 @@ async def group_detailed(group: str, data: dict):
 
 async def actual_msg(keyboard) -> str:
     if keyboard:
-        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n'\
-           f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
+        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n' \
+               f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
     else:
         return 'Немає актуальних данних на сьогодні'
+
+
+async def actual_info(message: types.Message):
+    keyboard = await create_keyboard()
+    msg = await actual_msg(keyboard)
+    await message.answer(msg, reply_markup=keyboard)
 
 
 @dp.message_handler(commands=['start'])
@@ -87,15 +94,18 @@ async def take_start(message: types.Message):
                                    row_width=1,
                                    ).row(KeyboardButton('Стан 💡'))
     await message.answer(
-        f"Привіт, {message.from_user.first_name}!\nЯ - <b>{about_bot['first_name']}</b>",
+        f"Привіт, {message.from_user.first_name}!\nЯ - <b>{about_bot.first_name}</b>",
         reply_markup=keyboard)
 
 
 @dp.message_handler(filters.Text(equals='Стан 💡'))
 async def take_now(message: types.Message):
-    keyboard = await create_keyboard()
-    msg = await actual_msg(keyboard)
-    await message.answer(msg, reply_markup=keyboard)
+    await actual_info(message)
+
+
+@dp.message_handler(filters.Command(['now'], ignore_case=True))
+async def take_now_cmd(message: types.Message):
+    await actual_info(message)
 
 
 @dp.callback_query_handler(text_startswith=['grp'])
@@ -131,6 +141,7 @@ async def send_admin(update: types.Update, error):
         message_to_admin = f"""Сталася помилка в боті:\n{name_error}"""
         for admins in admin_list:
             await bot.send_message(admins, message_to_admin)
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
