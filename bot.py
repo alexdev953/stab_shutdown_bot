@@ -113,8 +113,8 @@ async def take_group(query: types.CallbackQuery):
     await query.answer('Шукаю світло 🔭')
     group = query.data.split('@')[1]
     energy = await get_energy_val()
-    msg = await group_detailed(group, energy)
     keyboard = await create_keyboard(energy)
+    msg = await group_detailed(group, energy) if energy.get('data') else await actual_msg(keyboard)
     await query.message.edit_text(text=msg)
     await query.message.edit_reply_markup(reply_markup=keyboard)
 
@@ -125,7 +125,10 @@ async def take_update(query: types.CallbackQuery):
     keyboard = await create_keyboard()
     msg = await actual_msg(keyboard)
     await query.message.edit_text(msg)
-    await query.message.edit_reply_markup(keyboard)
+    if keyboard:
+        await query.message.edit_reply_markup(keyboard)
+    else:
+        await query.message.delete_reply_markup()
 
 
 @dp.errors_handler()
