@@ -7,8 +7,13 @@ from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMa
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 
 from Logger import logger
+from db import DataBase
+
+db = DataBase()
+
 
 config = Config()
+
 
 BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 
@@ -45,7 +50,7 @@ async def make_inline_keyboard(data: dict):
             keyboard.row(*width)
             width = []
     keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄', callback_data='upd'))
-    keyboard.add(InlineKeyboardButton(text='Дізнатися групу', url="https://oblenergo.cv.ua/shutdowns2/"))
+    keyboard.add(InlineKeyboardButton(text='Дізнатися групу 🏙️', url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
@@ -86,7 +91,8 @@ async def actual_info(message: types.Message):
     await message.answer(msg, reply_markup=keyboard)
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    commands=['start'])
 async def take_start(message: types.Message):
     about_bot = await bot.get_me()
     keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
@@ -98,17 +104,20 @@ async def take_start(message: types.Message):
         reply_markup=keyboard)
 
 
-@dp.message_handler(filters.Text(equals='Стан 💡'))
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    filters.Text(equals='Стан 💡'))
 async def take_now(message: types.Message):
     await actual_info(message)
 
 
-@dp.message_handler(filters.Command(['now'], ignore_case=True))
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    filters.Command(['now'], ignore_case=True))
 async def take_now_cmd(message: types.Message):
     await actual_info(message)
 
 
-@dp.callback_query_handler(text_startswith=['grp'])
+@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+                           text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     await query.answer('Шукаю світло 🔭')
     group = query.data.split('@')[1]
@@ -119,7 +128,8 @@ async def take_group(query: types.CallbackQuery):
     await query.message.edit_reply_markup(reply_markup=keyboard)
 
 
-@dp.callback_query_handler(text_startswith=['upd'])
+@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+                           text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
     await query.answer('Оновлюю дані 🔄')
     keyboard = await create_keyboard()
