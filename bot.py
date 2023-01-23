@@ -49,8 +49,10 @@ async def make_inline_keyboard(data: dict):
         if len(width) == 2:
             keyboard.row(*width)
             width = []
-    keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄', callback_data='upd'))
-    keyboard.add(InlineKeyboardButton(text='Дізнатися групу 🏙️', url="https://oblenergo.cv.ua/shutdowns2/"))
+    keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄',
+                                      callback_data='upd'))
+    keyboard.add(InlineKeyboardButton(text='Дізнатися групу 🏙️',
+                                      url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
@@ -82,7 +84,7 @@ async def actual_msg(keyboard) -> str:
         return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n' \
                f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
     else:
-        return 'Немає актуальних данних на сьогодні'
+        return 'Актуальні дані зараз відсутні 😢\nСпробуйте пізніше'
 
 
 async def actual_info(message: types.Message):
@@ -122,8 +124,8 @@ async def take_group(query: types.CallbackQuery):
     await query.answer('Шукаю світло 🔭')
     group = query.data.split('@')[1]
     energy = await get_energy_val()
-    msg = await group_detailed(group, energy)
     keyboard = await create_keyboard(energy)
+    msg = await group_detailed(group, energy) if energy.get('data') else await actual_msg(keyboard)
     await query.message.edit_text(text=msg)
     await query.message.edit_reply_markup(reply_markup=keyboard)
 
@@ -135,7 +137,10 @@ async def take_update(query: types.CallbackQuery):
     keyboard = await create_keyboard()
     msg = await actual_msg(keyboard)
     await query.message.edit_text(msg)
-    await query.message.edit_reply_markup(keyboard)
+    if keyboard:
+        await query.message.edit_reply_markup(keyboard)
+    else:
+        await query.message.delete_reply_markup()
 
 
 @dp.errors_handler()
