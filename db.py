@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Optional
 from aiogram.types import User
+from Logger import logger
 
 
 class DataBase:
@@ -27,18 +28,22 @@ class DataBase:
         self.con.execute(sql)
 
     def check_user(self, user: User):
-        cur = self.con.cursor()
-        cur.execute('select telegram_id from users where telegram_id = ?', (user.id,))
-        info = cur.fetchone()
-        if not info:
-            cur.execute("insert into users (first_name, user_name, telegram_id) values (?, ?, ?)",
-                        (user.first_name, user.username, user.id))
-            self.con.commit()
-        elif info:
-            cur.execute("update users set updated = current_timestamp where telegram_id = ?", (user.id,))
-            self.con.commit()
-        cur.close()
-        return True
+        try:
+            cur = self.con.cursor()
+            cur.execute('select telegram_id from users where telegram_id = ?', (user.id,))
+            info = cur.fetchone()
+            if not info:
+                cur.execute("insert into users (first_name, user_name, telegram_id) values (?, ?, ?)",
+                            (user.first_name, user.username, user.id))
+                self.con.commit()
+            elif info:
+                cur.execute("update users set updated = current_timestamp where telegram_id = ?", (user.id,))
+                self.con.commit()
+            cur.close()
+        except Exception as e:
+            logger.exception(e)
+        finally:
+            return True
 
 
 
