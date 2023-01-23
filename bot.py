@@ -69,7 +69,7 @@ async def group_detailed(group: str, data: dict):
     row = []
     for k, v in data.get('data').items():
         time_str = time(hour=int(k)).strftime('%H:%M')
-        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<pre>{time_str}</pre>"
+        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<code>{time_str}</code>"
         row.append(f"{time_str}{status_emoji.get(v.get(group))}")
         if len(row) == 4:
             detailed.append('|'.join(row))
@@ -113,7 +113,7 @@ async def take_now(message: types.Message):
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
-                    filters.Command(['now'], ignore_case=True))
+                    filters.Command('now', ignore_case=True))
 async def take_now_cmd(message: types.Message):
     await actual_info(message)
 
@@ -141,6 +141,14 @@ async def take_update(query: types.CallbackQuery):
         await query.message.edit_reply_markup(keyboard)
     else:
         await query.message.delete_reply_markup()
+
+
+@dp.my_chat_member_handler()
+async def member_catch(update: types.ChatMemberUpdated):
+    user_id = update.from_user.id
+    member_status = update.new_chat_member.status
+    if member_status == types.ChatMemberStatus.KICKED or member_status == types.ChatMemberStatus.MEMBER:
+        db.chat_member(user_id, update.new_chat_member.status)
 
 
 @dp.errors_handler()

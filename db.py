@@ -1,11 +1,13 @@
 import sqlite3
 from typing import Optional
-from aiogram.types import User
+from aiogram.types import User, Update
 from Logger import logger
+
+member_status = {"kicked": 0,
+                 "member": 1}
 
 
 class DataBase:
-
     con: Optional[sqlite3.Connection] = None
 
     def __init__(self):
@@ -45,6 +47,9 @@ class DataBase:
         finally:
             return True
 
-
-
+    def chat_member(self, user_id, status):
+        cur = self.con.cursor()
+        int_status = member_status.get(status, 1)
+        cur.execute("update users set member = ? where telegram_id = ?", (int_status, user_id))
+        self.con.commit()
 
