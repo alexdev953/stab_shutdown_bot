@@ -44,8 +44,10 @@ async def make_inline_keyboard(data: dict):
         if len(width) == 2:
             keyboard.row(*width)
             width = []
-    keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄', callback_data='upd'))
-    keyboard.add(InlineKeyboardButton(text='Дізнатися групу', url="https://oblenergo.cv.ua/shutdowns2/"))
+    keyboard.add(InlineKeyboardButton(text='ОНОВИТИ 🔄',
+                                      callback_data='upd'))
+    keyboard.add(InlineKeyboardButton(text='Дізнатися групу 🏙️',
+                                      url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
