@@ -50,6 +50,7 @@ class DataBase:
     def chat_member(self, user_id, status):
         cur = self.con.cursor()
         int_status = member_status.get(status, 1)
-        cur.execute("update users set member = ? where telegram_id = ?", (int_status, user_id))
+        cur.execute("update users set member = ?, updated = current_timestamp where telegram_id = ?",
+                    (int_status, user_id))
         self.con.commit()
 
