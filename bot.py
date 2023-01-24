@@ -123,7 +123,7 @@ async def take_now_cmd(message: types.Message):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
-    await query.answer('Шукаю світло 🔭')
+    # await query.answer('Шукаю світло 🔭')
     group = query.data.split('@')[1]
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(energy)
@@ -137,7 +137,7 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    await query.answer('Оновлюю дані 🔄')
+    # await query.answer('Оновлюю дані 🔄')
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
