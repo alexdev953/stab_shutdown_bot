@@ -123,7 +123,6 @@ async def take_now_cmd(message: types.Message):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
-    # await query.answer('Шукаю світло 🔭')
     group = query.data.split('@')[1]
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(energy)
@@ -137,15 +136,12 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    # await query.answer('Оновлюю дані 🔄')
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
-    await query.message.edit_text(msg)
-    try:
-        await query.message.edit_text(text=msg, reply_markup=keyboard)
-    except exceptions.MessageNotModified:
-        pass
+    await query.message.delete()
+    await asyncio.sleep(0.5)
+    await query.message.answer(text=msg, reply_markup=keyboard)
 
 
 @dp.my_chat_member_handler()
