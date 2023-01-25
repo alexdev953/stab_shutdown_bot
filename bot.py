@@ -139,8 +139,11 @@ async def take_update(query: types.CallbackQuery):
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
-    await query.message.delete()
-    await asyncio.sleep(0.5)
+    try:
+        await query.message.delete()
+    except exceptions.MessageCantBeDeleted:
+        await query.message.delete_reply_markup()
+    await asyncio.sleep(0.3)
     await query.message.answer(text=msg, reply_markup=keyboard)
 
 
