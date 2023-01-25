@@ -143,6 +143,7 @@ async def take_update(query: types.CallbackQuery):
         await query.message.delete()
     except exceptions.MessageCantBeDeleted:
         await query.message.delete_reply_markup()
+        await query.message.edit_text('👇👇👇👇')
     await asyncio.sleep(0.3)
     await query.message.answer(text=msg, reply_markup=keyboard)
 
