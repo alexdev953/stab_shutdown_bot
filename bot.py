@@ -140,12 +140,13 @@ async def take_update(query: types.CallbackQuery):
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
     try:
+        # raise exceptions.MessageCantBeDeleted(query.as_json())
         await query.message.delete()
     except exceptions.MessageCantBeDeleted:
-        await query.message.delete_reply_markup()
         await query.message.edit_text('👇👇👇👇')
-    await asyncio.sleep(0.3)
-    await query.message.answer(text=msg, reply_markup=keyboard)
+    finally:
+        await asyncio.sleep(0.3)
+        await query.message.answer(text=msg, reply_markup=keyboard)
 
 
 @dp.my_chat_member_handler()
