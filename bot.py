@@ -11,9 +11,7 @@ from db import DataBase
 
 db = DataBase()
 
-
 config = Config()
-
 
 BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 
@@ -26,6 +24,11 @@ dp = Dispatcher(bot=bot, loop=loop)
 
 status_emoji = {True: '✅',
                 False: '❌'}
+
+firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
+                               one_time_keyboard=True,
+                               row_width=1,
+                               ).row(KeyboardButton('Стан 💡'))
 
 
 async def get_energy_val() -> dict:
@@ -99,13 +102,9 @@ async def actual_info(message: types.Message):
                     commands=['start'])
 async def take_start(message: types.Message):
     about_bot = await bot.get_me()
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                   one_time_keyboard=True,
-                                   row_width=1,
-                                   ).row(KeyboardButton('Стан 💡'))
     await message.answer(
         f"Привіт, {message.from_user.first_name}!\nЯ - <b>{about_bot.first_name}</b>",
-        reply_markup=keyboard)
+        reply_markup=firs_key)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
@@ -147,6 +146,15 @@ async def take_update(query: types.CallbackQuery):
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
+
+
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    filters.Text)
+async def get_all_msg(message: types.Message):
+    logger.info(message.as_json())
+    await message.reply(
+        'Нажаль я ще не все вмію',
+        reply_markup=firs_key)
 
 
 @dp.my_chat_member_handler()
