@@ -139,10 +139,12 @@ async def take_update(query: types.CallbackQuery):
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
     try:
-        # raise exceptions.MessageCantBeDeleted(query.as_json())
+        # raise exceptions.MessageToDeleteNotFound(query.as_json())
         await query.message.delete()
     except exceptions.MessageCantBeDeleted:
         await query.message.edit_text('👇👇👇👇')
+    except exceptions.MessageToDeleteNotFound as del_error:
+        logger.error(f"{del_error}:\n{query.as_json()}")
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
