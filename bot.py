@@ -130,6 +130,9 @@ async def take_group(query: types.CallbackQuery):
         await query.message.edit_text(text=msg, reply_markup=keyboard)
     except exceptions.MessageNotModified:
         pass
+    except exceptions.MessageToEditNotFound:
+        logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
+        await query.message.answer(text=msg, reply_markup=keyboard)
 
 
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
