@@ -35,12 +35,10 @@ class DataBase:
             cur.execute('select telegram_id from users where telegram_id = ?', (user.id,))
             info = cur.fetchone()
             if not info:
-                print('insert')
                 cur.execute("insert into users (first_name, user_name, telegram_id, last_name) values (?, ?, ?, ?)",
                             (user.first_name, user.username, user.id, user.last_name))
                 self.con.commit()
             elif info:
-                print('update')
                 cur.execute("update users set updated = current_timestamp, last_name = ? where telegram_id = ?",
                             (user.last_name, user.id))
                 self.con.commit()
