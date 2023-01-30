@@ -71,9 +71,10 @@ async def create_keyboard(data: dict) -> tuple[bool, types.inline_keyboard.Inlin
 async def group_detailed(group: str, data: dict):
     detailed = []
     row = []
+    now_time = datetime.now()
     for k, v in data.get('data').items():
-        time_str = time(hour=int(k)).strftime('%H:%M')
-        time_str = f"<b><u>{time_str}</u></b>" if datetime.now().hour == int(k) else f"<code>{time_str}</code>"
+        time_json = time(hour=int(k))
+        time_str = await format_time(now_time, time_json, int(k))
         row.append(f"{time_str}{status_emoji.get(v.get(group))}")
         if len(row) == 4:
             detailed.append('|'.join(row))
@@ -81,6 +82,14 @@ async def group_detailed(group: str, data: dict):
     detailed_str = '\n\n'.join(detailed)
     finally_msg = f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}"
     return finally_msg
+
+
+async def format_time(time_now: datetime, time_str: time, json_time: int) -> str:
+    if time_now.hour == json_time:
+        time_form = f"<b><u>{time_now.strftime('%H:%M')}</u></b>"
+    else:
+        time_form = f"<code>{time_str.strftime('%H:%M')}</code>"
+    return time_form
 
 
 async def actual_msg(status: bool) -> str:
