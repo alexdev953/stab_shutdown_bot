@@ -81,7 +81,8 @@ async def group_detailed(group: str, data: dict):
             detailed.append('|'.join(row))
             row = []
     detailed_str = '\n\n'.join(detailed)
-    finally_msg = f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}"
+    finally_msg = f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}\n\n" \
+                  f"✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>"
     return finally_msg
 
 
@@ -95,7 +96,8 @@ async def format_time(time_now: datetime, time_str: time, json_time: int) -> str
 
 async def actual_msg(status: bool) -> str:
     if status:
-        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n' \
+        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n\n' \
+               f'✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>\n\n' \
                f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
     else:
         return 'Актуальні дані зараз відсутні😢😢😢\nСпробуйте пізніше⏱️'
