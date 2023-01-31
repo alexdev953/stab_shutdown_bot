@@ -23,7 +23,8 @@ asyncio.set_event_loop(loop)
 dp = Dispatcher(bot=bot, loop=loop)
 
 status_emoji = {True: '✅',
-                False: '❌'}
+                False: '❌',
+                None: "🤷🏻"}
 
 firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
                                one_time_keyboard=True,
