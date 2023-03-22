@@ -33,7 +33,7 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
 
 
 async def get_energy_val() -> dict:
-    async with aiohttp.ClientSession(timeout=5) as session:
+    async with aiohttp.ClientSession(conn_timeout=5) as session:
         try:
             async with session.get(API_URL, ssl=False) as resp:
                 if resp.ok:
