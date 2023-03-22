@@ -34,13 +34,16 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
 
 async def get_energy_val() -> dict:
     async with aiohttp.ClientSession() as session:
-        async with session.get(API_URL, ssl=False) as resp:
-            if resp.ok:
-                json_resp = await resp.json()
-                # json_resp = {'data': None}
-            else:
-                logger.warn(resp.status, await resp.json())
-                json_resp = {'data': None}
+        try:
+            async with session.get(API_URL, ssl=False) as resp:
+                if resp.ok:
+                    json_resp = await resp.json()
+                    # json_resp = {'data': None}
+                else:
+                    logger.warn(resp.status, await resp.json())
+                    json_resp = {'data': None}
+        except aiohttp.client.ClientError:
+            json_resp = {'data': None}
     logger.debug(json_resp)
     return json_resp
 
