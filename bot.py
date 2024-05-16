@@ -42,7 +42,8 @@ async def get_energy_val() -> dict:
                 else:
                     logger.warn(resp.status, await resp.json())
                     text_parser = {'data': None}
-        except aiohttp.client.ClientError:
+        except aiohttp.client.ClientError as e:
+            logger.error(f'Error: {e}')
             text_parser = {'data': None}
     logger.debug(text_parser)
     return text_parser
@@ -51,10 +52,12 @@ async def get_energy_val() -> dict:
 async def make_inline_keyboard(data: dict, hour: str):
     keyboard = InlineKeyboardMarkup()
     width = []
+    logger.debug(data)
     if data.get('data'):
-        for k, v in data.get('data').get(hour).items():
-            width.append(InlineKeyboardButton(text=f'{k} {status_emoji.get(v)}',
-                                              callback_data=f'grp@{k}'))
+        for groups, hours in data.get('data').items():
+            status_pow = hours.get(hour)
+            width.append(InlineKeyboardButton(text=f'{groups} {status_emoji.get(status_pow)}',
+                                              callback_data=f'grp@{groups}'))
             if len(width) == 2:
                 keyboard.row(*width)
                 width = []
@@ -66,7 +69,7 @@ async def make_inline_keyboard(data: dict, hour: str):
 
 
 async def create_keyboard(data: dict) -> tuple[bool, types.inline_keyboard.InlineKeyboardMarkup]:
-    hour = datetime.now().hour
+    hour = datetime.now().strftime('%H')
     keyboard = await make_inline_keyboard(data, str(hour))
     status = True if data.get('data') else False
     return status, keyboard
@@ -76,10 +79,10 @@ async def group_detailed(group: str, data: dict):
     detailed = []
     row = []
     now_time = datetime.now()
-    for k, v in data.get('data').items():
+    for k, v in data.get('data').get(group).items():
         time_json = time(hour=int(k))
         time_str = await format_time(now_time, time_json, int(k))
-        row.append(f"{time_str}{status_emoji.get(v.get(group))}")
+        row.append(f"{time_str}{status_emoji.get(v)}")
         if len(row) == 4:
             detailed.append('|'.join(row))
             row = []
@@ -138,6 +141,7 @@ async def take_now_cmd(message: types.Message):
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
+    print(group)
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(energy)
     msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status)
@@ -153,6 +157,7 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
+    print('here')
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
@@ -166,6 +171,11 @@ async def take_update(query: types.CallbackQuery):
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
+
+
+@dp.callback_query_handler()
+async def take_other(query: types.CallbackQuery):
+    print(query)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
