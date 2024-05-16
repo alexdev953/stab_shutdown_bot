@@ -5,7 +5,7 @@ import aiohttp
 from aiogram import types, executor, Bot, Dispatcher, filters, exceptions
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
-
+from web_utils import data_parser
 from Logger import logger
 from db import DataBase
 
@@ -37,15 +37,15 @@ async def get_energy_val() -> dict:
         try:
             async with session.get(API_URL, ssl=False) as resp:
                 if resp.ok:
-                    json_resp = await resp.json()
+                    text_parser = data_parser(await resp.text())
                     # json_resp = {'data': None}
                 else:
                     logger.warn(resp.status, await resp.json())
-                    json_resp = {'data': None}
+                    text_parser = {'data': None}
         except aiohttp.client.ClientError:
-            json_resp = {'data': None}
-    logger.debug(json_resp)
-    return json_resp
+            text_parser = {'data': None}
+    logger.debug(text_parser)
+    return text_parser
 
 
 async def make_inline_keyboard(data: dict, hour: str):
