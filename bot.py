@@ -141,7 +141,6 @@ async def take_now_cmd(message: types.Message):
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
-    print(group)
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(energy)
     msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status)
@@ -157,7 +156,6 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    print('here')
     energy = await get_energy_val()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
@@ -171,11 +169,6 @@ async def take_update(query: types.CallbackQuery):
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
-
-
-@dp.callback_query_handler()
-async def take_other(query: types.CallbackQuery):
-    print(query)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
