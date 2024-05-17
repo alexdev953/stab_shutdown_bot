@@ -24,8 +24,8 @@ class DataBase:
     first_name text,
     user_name text,
     telegram_id integer not null,
-    created text not null default current_timestamp,
-    updated text not null default current_timestamp
+    created text not null default (datetime(current_timestamp, 'localtime')),
+    updated text not null default (datetime(current_timestamp, 'localtime'))
 );"""
         self.con.execute(sql)
 
@@ -39,7 +39,7 @@ class DataBase:
                             (user.first_name, user.username, user.id, user.last_name))
                 self.con.commit()
             elif info:
-                cur.execute("update users set updated = current_timestamp, last_name = ? where telegram_id = ?",
+                cur.execute("update users set updated = datetime(current_timestamp, 'localtime'), last_name = ? where telegram_id = ?",
                             (user.last_name, user.id))
                 self.con.commit()
             cur.close()
@@ -51,7 +51,7 @@ class DataBase:
     def chat_member(self, user_id, status):
         cur = self.con.cursor()
         int_status = member_status.get(status, 1)
-        cur.execute("update users set member = ?, updated = current_timestamp where telegram_id = ?",
+        cur.execute("update users set member = ?, updated = datetime(current_timestamp, 'localtime') where telegram_id = ?",
                     (int_status, user_id))
         self.con.commit()
 
