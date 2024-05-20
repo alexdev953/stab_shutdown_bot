@@ -152,7 +152,7 @@ async def take_group(query: types.CallbackQuery):
         logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
         await query.message.answer(text=msg, reply_markup=keyboard)
     finally:
-        await query.answer(f'✅Оновленно 🏙️Група: {group}', cache_time=60)
+        await query.answer(f'✅Оновленно 🏙️Група: {group}', cache_time=3)
 
 
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
@@ -171,7 +171,7 @@ async def take_update(query: types.CallbackQuery):
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
-        await query.answer('Дані оновленно ✅', cache_time=60)
+        await query.answer('Дані оновленно ✅', cache_time=3)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
