@@ -30,12 +30,14 @@ class DataBase:
 );
 create table if not exists power_data_tbl
 (
-    id_pow   integer                                                 not null
+    id_pow      integer                                                 not null
         constraint power_data_tbl_pk
             primary key autoincrement,
-    pow_data text                                                    not null,
-    created  text default (datetime(current_timestamp, 'localtime')) not null
-);"""
+    pow_data    text                                                    not null,
+    created     text default (datetime(current_timestamp, 'localtime')) not null,
+    actual_date TEXT                                                    not null
+);
+"""
         self.con.executescript(sql)
 
     def check_user(self, user: User):
@@ -66,7 +68,8 @@ create table if not exists power_data_tbl
 
     def save_json(self, data: dict):
         cur = self.con.cursor()
-        cur.execute("insert into power_data_tbl(pow_data) values(?);", (json.dumps(data),))
+        cur.execute("insert into power_data_tbl(pow_data, actual_date) values(?,?);",
+                    (json.dumps(data), data.get('actual_date')))
         self.con.commit()
 
     def get_json(self) -> (dict, str):
