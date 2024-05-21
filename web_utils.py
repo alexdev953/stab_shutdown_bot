@@ -4,7 +4,7 @@ import requests
 # resp = requests.get('')
 
 
-def data_parser(data: str):
+def data_parser(data: str) -> dict:
     soap = BeautifulSoup(data, "html.parser")
     data_div = soap.find('div', {"id": "gsv"}).find('div').find_all('div')
     status_dict = {'мз': None, 'в': False, 'з': True}

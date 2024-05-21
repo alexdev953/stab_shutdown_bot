@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Optional
-from aiogram.types import User, Update
+from aiogram.types import User
+import json
 from Logger import logger
 
 member_status = {"kicked": 0,
@@ -26,8 +27,16 @@ class DataBase:
     telegram_id integer not null,
     created text not null default (datetime(current_timestamp, 'localtime')),
     updated text not null default (datetime(current_timestamp, 'localtime'))
+);
+create table if not exists power_data_tbl
+(
+    id_pow   integer                                                 not null
+        constraint power_data_tbl_pk
+            primary key autoincrement,
+    pow_data text                                                    not null,
+    created  text default (datetime(current_timestamp, 'localtime')) not null
 );"""
-        self.con.execute(sql)
+        self.con.executescript(sql)
 
     def check_user(self, user: User):
         try:
@@ -55,3 +64,20 @@ class DataBase:
                     (int_status, user_id))
         self.con.commit()
 
+    def save_json(self, data: dict):
+        cur = self.con.cursor()
+        cur.execute("insert into power_data_tbl(pow_data) values(?);", (json.dumps(data),))
+        self.con.commit()
+
+    def get_json(self) -> dict:
+        cur = self.con.cursor()
+        cur.execute("select power_data_tbl.pow_data, created from power_data_tbl where datetime(power_data_tbl.created) "
+                    "between datetime(current_timestamp, 'localtime', '-15 minutes') "
+                    "and datetime(current_timestamp, 'localtime') "
+                    "order by created limit 1;")
+        info = cur.fetchone()
+        logger.debug(info)
+        if info:
+            return json.loads(info[0])
+        else:
+            return {"data": None}

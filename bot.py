@@ -9,6 +9,7 @@ from web_utils import data_parser
 from Logger import logger
 from db import DataBase
 
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
 db = DataBase()
 
 config = Config()
@@ -32,13 +33,21 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
                                ).row(KeyboardButton('Стан 💡'))
 
 
+async def get_energy():
+    data = db.get_json()
+    if data.get('data'):
+        return data
+    else:
+        return await get_energy_val()
+
+
 async def get_energy_val() -> dict:
-    async with aiohttp.ClientSession(conn_timeout=5) as session:
+    async with aiohttp.ClientSession(conn_timeout=5, headers=HEADERS) as session:
         try:
             async with session.get(API_URL, ssl=False) as resp:
                 if resp.ok:
                     text_parser = data_parser(await resp.text())
-                    # json_resp = {'data': None}
+                    db.save_json(text_parser)
                 else:
                     logger.warn(resp.status, await resp.json())
                     text_parser = {'data': None}
@@ -110,7 +119,7 @@ async def actual_msg(status: bool) -> str:
 
 
 async def actual_info(message: types.Message):
-    energy = await get_energy_val()
+    energy = await get_energy()
     data_status, keyboard = await create_keyboard(energy)
     msg = await actual_msg(data_status)
     await message.answer(msg, reply_markup=keyboard)
@@ -141,7 +150,7 @@ async def take_now_cmd(message: types.Message):
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
-    energy = await get_energy_val()
+    energy = await get_energy()
     data_status, keyboard = await create_keyboard(energy)
     msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status)
     try:
@@ -158,11 +167,10 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    energy = await get_energy_val()
+    energy = await get_energy()
     data_status, keyboard = await create_keyboard(data=energy)
     msg = await actual_msg(data_status)
     try:
-        # raise exceptions.MessageToDeleteNotFound(query.as_json())
         await query.message.delete()
     except exceptions.MessageCantBeDeleted:
         await query.message.edit_text('👇👇👇👇')
