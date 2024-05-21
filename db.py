@@ -69,7 +69,7 @@ create table if not exists power_data_tbl
         cur.execute("insert into power_data_tbl(pow_data) values(?);", (json.dumps(data),))
         self.con.commit()
 
-    def get_json(self) -> dict:
+    def get_json(self) -> (dict, str):
         cur = self.con.cursor()
         cur.execute("select power_data_tbl.pow_data, created from power_data_tbl where datetime(power_data_tbl.created) "
                     "between datetime(current_timestamp, 'localtime', '-15 minutes') "
@@ -78,6 +78,6 @@ create table if not exists power_data_tbl
         info = cur.fetchone()
         logger.debug(info)
         if info:
-            return json.loads(info[0])
+            return json.loads(info[0]), info[1]
         else:
-            return {"data": None}
+            return {"data": None}, ''

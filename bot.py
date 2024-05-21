@@ -34,11 +34,11 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
 
 
 async def get_energy():
-    data = db.get_json()
+    data, date = db.get_json()
     if data.get('data'):
-        return data
+        return data, date
     else:
-        return await get_energy_val()
+        return await get_energy_val(), date
 
 
 async def get_energy_val() -> dict:
@@ -109,9 +109,10 @@ async def format_time(time_now: datetime, time_str: time, json_time: int) -> str
     return time_form
 
 
-async def actual_msg(status: bool) -> str:
+async def actual_msg(status: bool, date: str) -> str:
     if status:
-        return f'Станом на <code>{datetime.now().strftime("%d.%m.%y %H:%M")}</code>\n\n' \
+        date = datetime.now().strftime("%d.%m.%y %H:%M") if not date else date
+        return f'Станом на <code>{date}</code>\n\n' \
                f'✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>\n\n' \
                f'<b>Оберіть групу для детального перегляду</b>\n👇👇👇👇'
     else:
@@ -119,9 +120,9 @@ async def actual_msg(status: bool) -> str:
 
 
 async def actual_info(message: types.Message):
-    energy = await get_energy()
+    energy, date = await get_energy()
     data_status, keyboard = await create_keyboard(energy)
-    msg = await actual_msg(data_status)
+    msg = await actual_msg(data_status, date)
     await message.answer(msg, reply_markup=keyboard)
 
 
@@ -150,9 +151,9 @@ async def take_now_cmd(message: types.Message):
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
-    energy = await get_energy()
+    energy, date = await get_energy()
     data_status, keyboard = await create_keyboard(energy)
-    msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status)
+    msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status, date)
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard)
     except exceptions.MessageNotModified as edit_error:
@@ -167,9 +168,9 @@ async def take_group(query: types.CallbackQuery):
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
-    energy = await get_energy()
+    energy, date = await get_energy()
     data_status, keyboard = await create_keyboard(data=energy)
-    msg = await actual_msg(data_status)
+    msg = await actual_msg(data_status, date)
     try:
         await query.message.delete()
     except exceptions.MessageCantBeDeleted:
