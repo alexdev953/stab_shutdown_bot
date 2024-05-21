@@ -38,7 +38,11 @@ async def get_energy():
     if data.get('data'):
         return data, date
     else:
-        return await get_energy_val(), date
+        actual_data = await get_energy_val()
+        if actual_data.get('actual_date') == datetime.now().strftime('%d.%m.%Y'):
+            return actual_data
+        else:
+            ...
 
 
 async def get_energy_val() -> dict:

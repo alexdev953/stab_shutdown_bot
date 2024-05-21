@@ -74,10 +74,14 @@ create table if not exists power_data_tbl
 
     def get_json(self) -> (dict, str):
         cur = self.con.cursor()
-        cur.execute("select power_data_tbl.pow_data, created from power_data_tbl where datetime(power_data_tbl.created) "
-                    "between datetime(current_timestamp, 'localtime', '-15 minutes') "
-                    "and datetime(current_timestamp, 'localtime') "
-                    "order by created limit 1;")
+        cur.execute("""select power_data_tbl.pow_data
+     ,strftime('%d.%m.%Y %H:%M',created) as created 
+        from power_data_tbl
+        where datetime(power_data_tbl.created)
+        between datetime(current_timestamp, 'localtime', '-15 minutes')
+        and datetime(current_timestamp, 'localtime')
+        and actual_date = strftime('%d.%m.%Y', 'now', 'localtime')
+        order by created limit 1;""")
         info = cur.fetchone()
         logger.debug(info)
         if info:
