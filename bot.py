@@ -131,6 +131,15 @@ async def actual_info(message: types.Message):
     msg = await actual_msg(data_status, date)
     await message.answer(msg, reply_markup=keyboard)
 
+async def create_short_keyboard():
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(text="🔽 Всі групи 🔽",
+                                      callback_data='groups'))
+    keyboard.add(InlineKeyboardButton(text='🔄 ОНОВИТИ 🔄',
+                                      callback_data='upd'))
+    keyboard.add(InlineKeyboardButton(text='🏙️ Дізнатися групу 🏙️',
+                                      url="https://oblenergo.cv.ua/shutdowns2/"))
+    return keyboard
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     commands=['start'])
@@ -158,8 +167,10 @@ async def take_now_cmd(message: types.Message):
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy, date = await get_energy()
-    data_status, keyboard = await create_keyboard(energy)
-    msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status, date)
+    # data_status, keyboard = await create_keyboard(energy)
+    keyboard = await create_short_keyboard()
+    # msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status, date)
+    msg = await group_detailed(group, energy)
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard)
     except exceptions.MessageNotModified as edit_error:
@@ -188,6 +199,14 @@ async def take_update(query: types.CallbackQuery):
         await query.message.answer(text=msg, reply_markup=keyboard)
         await query.answer('Дані оновленно ✅', cache_time=3)
 
+
+@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+                           text_startswith=['groups'])
+async def get_groups(query: types.CallbackQuery):
+    energy, date = await get_energy()
+    data_status, keyboard = await create_keyboard(energy)
+    await query.message.edit_reply_markup(reply_markup=keyboard)
+    await query.answer('🔽 Всі групи 🔽')
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     filters.Text)
