@@ -9,7 +9,8 @@ from web_utils import data_parser
 from Logger import logger
 from db import DataBase
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
 db = DataBase()
 
 config = Config()
@@ -34,16 +35,15 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
 
 
 async def get_energy():
-    data, date = db.get_json()
+    data = db.get_json()
     if data.get('data'):
-        return data, date
+        return data, data.get('actual')
     else:
         actual_data = await get_energy_val()
-        print(actual_data)
         if actual_data.get('actual_date') == datetime.now().strftime('%d.%m.%Y'):
-            return actual_data, actual_data.get('actual_date')
+            return actual_data, actual_data.get('actual')
         else:
-            ...
+            return db.get_last_actual()
 
 
 async def get_energy_val() -> dict:
@@ -101,8 +101,9 @@ async def group_detailed(group: str, data: dict):
             detailed.append('|'.join(row))
             row = []
     detailed_str = '\n\n'.join(detailed)
-    finally_msg = f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}\n\n" \
-                  f"✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>"
+    finally_msg = (f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}\n\n"
+                   f"✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>"
+                   f"\n\n<b>Станом на:</b> <code>{data.get('actual')}</code>")
     return finally_msg
 
 

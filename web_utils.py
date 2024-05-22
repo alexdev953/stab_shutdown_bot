@@ -18,4 +18,7 @@ def data_parser(data: str) -> dict:
         power = [pow.text for pow in datas]
         group_data = {group_id: {v1: status_dict.get(v2) for v1, v2 in zip(hours_val, power)}}
         power_data.update(group_data)
-    return {"data": power_data, "actual_date": actual_date, "actual_time": actual_time}
+    return {"data": power_data,
+            "actual_date": actual_date,
+            "actual_time": actual_time,
+            "actual": f"{actual_date} {actual_time}"}
