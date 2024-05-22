@@ -43,7 +43,8 @@ async def get_energy():
         if actual_data.get('actual_date') == datetime.now().strftime('%d.%m.%Y'):
             return actual_data, actual_data.get('actual')
         else:
-            return db.get_last_actual()
+            last_actual = db.get_last_actual()
+            return last_actual, last_actual.get('actual')
 
 
 async def get_energy_val() -> dict:
