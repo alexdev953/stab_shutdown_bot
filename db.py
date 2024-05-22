@@ -35,7 +35,8 @@ create table if not exists power_data_tbl
             primary key autoincrement,
     pow_data    text                                                    not null,
     created     text default (datetime(current_timestamp, 'localtime')) not null,
-    actual_date TEXT                                                    not null
+    actual_date TEXT                                                    not null,
+    actual_time TEXT                                                    not null
 );
 """
         self.con.executescript(sql)
@@ -68,8 +69,8 @@ create table if not exists power_data_tbl
 
     def save_json(self, data: dict):
         cur = self.con.cursor()
-        cur.execute("insert into power_data_tbl(pow_data, actual_date) values(?,?);",
-                    (json.dumps(data), data.get('actual_date')))
+        cur.execute("insert into power_data_tbl(pow_data, actual_date, actual_time) values(?,?,?);",
+                    (json.dumps(data), data.get('actual_date'), data.get('actual_time')))
         self.con.commit()
 
     def get_json(self) -> (dict, str):
