@@ -63,7 +63,7 @@ async def get_energy_val() -> dict:
     return text_parser
 
 
-async def make_inline_keyboard(data: dict, hour: str):
+async def make_inline_keyboard(data: dict, hour: str, group: str = ''):
     keyboard = InlineKeyboardMarkup()
     width = []
     logger.debug(data)
@@ -75,16 +75,21 @@ async def make_inline_keyboard(data: dict, hour: str):
             if len(width) == 2:
                 keyboard.row(*width)
                 width = []
-    keyboard.add(InlineKeyboardButton(text='🔄 ОНОВИТИ 🔄',
-                                      callback_data='upd'))
+
+    if group:
+        keyboard.add(InlineKeyboardButton(text='🔄 Оновити групу 🔄',
+                                          callback_data=group))
+    else:
+        keyboard.add(InlineKeyboardButton(text='🔄 ОНОВИТИ 🔄',
+                                          callback_data='upd'))
     keyboard.add(InlineKeyboardButton(text='🏙️ Дізнатися групу 🏙️',
                                       url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
-async def create_keyboard(data: dict) -> tuple[bool, types.inline_keyboard.InlineKeyboardMarkup]:
+async def create_keyboard(data: dict, group: str = '') -> tuple[bool, types.inline_keyboard.InlineKeyboardMarkup]:
     hour = datetime.now().strftime('%H')
-    keyboard = await make_inline_keyboard(data, str(hour))
+    keyboard = await make_inline_keyboard(data, str(hour), group)
     status = True if data.get('data') else False
     return status, keyboard
 
@@ -131,15 +136,17 @@ async def actual_info(message: types.Message):
     msg = await actual_msg(data_status, date)
     await message.answer(msg, reply_markup=keyboard)
 
-async def create_short_keyboard():
+
+async def create_short_keyboard(group: str):
     keyboard = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(text="🔽 Всі групи 🔽",
                                       callback_data='groups'))
-    keyboard.add(InlineKeyboardButton(text='🔄 ОНОВИТИ 🔄',
-                                      callback_data='upd'))
+    keyboard.add(InlineKeyboardButton(text='🔄 Оновити групу 🔄',
+                                      callback_data=f'grp@{group}'))
     keyboard.add(InlineKeyboardButton(text='🏙️ Дізнатися групу 🏙️',
                                       url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
+
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     commands=['start'])
@@ -167,9 +174,7 @@ async def take_now_cmd(message: types.Message):
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy, date = await get_energy()
-    # data_status, keyboard = await create_keyboard(energy)
-    keyboard = await create_short_keyboard()
-    # msg = await group_detailed(group, energy) if data_status else await actual_msg(data_status, date)
+    keyboard = await create_short_keyboard(group)
     msg = await group_detailed(group, energy)
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard)
@@ -204,7 +209,8 @@ async def take_update(query: types.CallbackQuery):
                            text_startswith=['groups'])
 async def get_groups(query: types.CallbackQuery):
     energy, date = await get_energy()
-    data_status, keyboard = await create_keyboard(energy)
+    callback_group = query.message.reply_markup.to_python().get('inline_keyboard')[-2][0].get('callback_data')
+    data_status, keyboard = await create_keyboard(energy, group=callback_group)
     await query.message.edit_reply_markup(reply_markup=keyboard)
     await query.answer('🔽 Всі групи 🔽')
 
