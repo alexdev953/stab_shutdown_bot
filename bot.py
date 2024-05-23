@@ -40,7 +40,7 @@ async def get_energy():
         logger.debug('Get data from DB!')
         return data, data.get('actual')
     if data.get('next_day'):
-        logger.debug('Get last actual!')
+        logger.debug('Get last actual from DB!')
         return get_last_actual_db()
     else:
         actual_data = await get_energy_val()
