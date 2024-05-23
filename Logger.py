@@ -7,7 +7,7 @@ LOGGER_FMT = '%(asctime)s [%(process)d] %(name)s - %(levelname)s - %(module)s.%(
 LOGGER_TIME_FMT = '[%d-%m-%Y %H:%M:%S]'
 LOGGER_FILE_NAME = 'logger.log'
 
-LOGGER_LEVEL = logging.INFO
+LOGGER_LEVEL = logging.DEBUG
 
 logger = logging.getLogger(LOGGER_NAME)
 logger.setLevel(LOGGER_LEVEL)

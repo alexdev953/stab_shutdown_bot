@@ -37,14 +37,22 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
 async def get_energy():
     data = db.get_json()
     if data.get('data'):
+        logger.debug('Get data from DB!')
         return data, data.get('actual')
+    if data.get('next_day'):
+        logger.debug('Get last actual!')
+        return get_last_actual_db()
     else:
         actual_data = await get_energy_val()
         if actual_data.get('actual_date') == datetime.now().strftime('%d.%m.%Y'):
             return actual_data, actual_data.get('actual')
         else:
-            last_actual = db.get_last_actual()
-            return last_actual, last_actual.get('actual')
+            return get_last_actual_db()
+
+
+def get_last_actual_db():
+    last_actual = db.get_last_actual()
+    return last_actual, last_actual.get('actual')
 
 
 async def get_energy_val() -> dict:
@@ -67,7 +75,6 @@ async def get_energy_val() -> dict:
 async def make_inline_keyboard(data: dict, hour: str, group: str = ''):
     keyboard = InlineKeyboardMarkup()
     width = []
-    logger.debug(data)
     if data.get('data'):
         for groups, hours in data.get('data').items():
             status_pow = hours.get(hour)
@@ -214,6 +221,7 @@ async def get_groups(query: types.CallbackQuery):
     data_status, keyboard = await create_keyboard(energy, group=callback_group)
     await query.message.edit_reply_markup(reply_markup=keyboard)
     await query.answer('🔽 Всі групи 🔽')
+
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     filters.Text)

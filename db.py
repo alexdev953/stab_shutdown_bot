@@ -76,7 +76,7 @@ create table if not exists power_data_tbl
     def get_json(self) -> dict:
         cur = self.con.cursor()
         cur.execute("""select power_data_tbl.pow_data
-        ,actual_date || ' ' || actual_time as actual 
+        ,exists(select actual_date from power_data_tbl where actual_date = strftime('%d.%m.%Y', 'now', 'localtime', '+1 day')) as next_day
         from power_data_tbl
         where datetime(power_data_tbl.created)
         between datetime(current_timestamp, 'localtime', '-15 minutes')
@@ -86,7 +86,9 @@ create table if not exists power_data_tbl
         info = cur.fetchone()
         logger.debug(info)
         if info:
-            return json.loads(info[0])
+            data = json.loads(info[0])
+            data.update({"next_day": info[1]})
+            return data
         else:
             return {"data": None}
 
