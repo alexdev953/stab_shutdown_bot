@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, time
-from Config import Config
+from Config import config_data as config
 import aiohttp
 from aiogram import types, executor, Bot, Dispatcher, filters, exceptions
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
@@ -12,8 +12,6 @@ from db import DataBase
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
 db = DataBase()
-
-config = Config()
 
 BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 

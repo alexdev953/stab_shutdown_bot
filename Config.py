@@ -1,9 +1,10 @@
 import configparser
+import logging
 
 
 class Config:
-
     config_obj = None
+    logger_level = 'INFO'
 
     def load_config(self) -> configparser.ConfigParser:
         config = configparser.ConfigParser()
@@ -29,4 +30,16 @@ class Config:
         bot_token = config['Telegram']['bot_token']
         chat_id = config['Telegram']['chat_id']
         api_url = config['Web']['url_api']
+        self.parse_logger_sec()
         return bot_token, chat_id, api_url
+
+    def parse_logger_sec(self):
+        config = self.config_obj
+        is_logger_sec = config.has_section('Logger')
+        if is_logger_sec:
+            is_logger_opt = config.has_option('Logger', 'level')
+            if is_logger_opt:
+                self.logger_level = config.get('Logger', 'level')
+
+
+config_data = Config()

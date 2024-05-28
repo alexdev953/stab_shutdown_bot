@@ -1,5 +1,6 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from Config import config_data
 
 
 LOGGER_NAME = 'Stab Shutdown'
@@ -7,7 +8,7 @@ LOGGER_FMT = '%(asctime)s [%(process)d] %(name)s - %(levelname)s - %(module)s.%(
 LOGGER_TIME_FMT = '[%d-%m-%Y %H:%M:%S]'
 LOGGER_FILE_NAME = 'logger.log'
 
-LOGGER_LEVEL = logging.DEBUG
+LOGGER_LEVEL = logging.getLevelName(config_data.logger_level)
 
 logger = logging.getLogger(LOGGER_NAME)
 logger.setLevel(LOGGER_LEVEL)
