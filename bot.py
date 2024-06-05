@@ -208,7 +208,7 @@ async def take_update(query: types.CallbackQuery):
     finally:
         await asyncio.sleep(0.3)
         await query.message.answer(text=msg, reply_markup=keyboard)
-        await query.answer('Дані оновленно ✅', cache_time=3)
+        await query.answer('Дані оновлено ✅', cache_time=3)
 
 
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
@@ -218,7 +218,7 @@ async def get_groups(query: types.CallbackQuery):
     callback_group = query.message.reply_markup.to_python().get('inline_keyboard')[-2][0].get('callback_data')
     data_status, keyboard = await create_keyboard(energy, group=callback_group)
     await query.message.edit_reply_markup(reply_markup=keyboard)
-    await query.answer('🔽 Всі групи 🔽')
+    await query.answer('🔽 Всі групи 🔽', cache_time=3)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
