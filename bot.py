@@ -161,6 +161,7 @@ async def take_start(message: types.Message):
     await message.answer(
         f"Привіт, {message.from_user.first_name}!\nЯ - <b>{about_bot.first_name}</b>",
         reply_markup=firs_key)
+    await actual_info(message)
 
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
