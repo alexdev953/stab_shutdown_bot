@@ -227,8 +227,9 @@ async def get_groups(query: types.CallbackQuery):
 async def get_all_msg(message: types.Message):
     logger.info(message.as_json())
     await message.reply(
-        'Нажаль я ще не все вмію',
+        'Я вмію показувати тільки графік відключень',
         reply_markup=firs_key)
+    await actual_info(message)
 
 
 @dp.my_chat_member_handler()
