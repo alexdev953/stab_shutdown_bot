@@ -191,7 +191,7 @@ async def take_group(query: types.CallbackQuery):
         logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
         await query.message.answer(text=msg, reply_markup=keyboard)
     finally:
-        await query.answer(f'✅Оновленно 🏙️Група: {group}', cache_time=3)
+        await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
 
 
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
