@@ -218,7 +218,11 @@ async def get_groups(query: types.CallbackQuery):
     energy, date = await get_energy()
     callback_group = query.message.reply_markup.to_python().get('inline_keyboard')[-2][0].get('callback_data')
     data_status, keyboard = await create_keyboard(energy, group=callback_group)
-    await query.message.edit_reply_markup(reply_markup=keyboard)
+    try:
+        await query.message.edit_reply_markup(reply_markup=keyboard)
+    except exceptions.MessageNotModified:
+        await query.message.delete_reply_markup()
+        await query.message.edit_reply_markup(reply_markup=keyboard)
     await query.answer('🔽 Всі групи 🔽', cache_time=3)
 
 
@@ -227,7 +231,7 @@ async def get_groups(query: types.CallbackQuery):
 async def get_all_msg(message: types.Message):
     logger.info(message.as_json())
     await message.reply(
-        'Я вмію показувати тільки графік відключень',
+        'Я вмію показувати тільки графік відключень\n👇👇👇👇👇👇👇👇',
         reply_markup=firs_key)
     await actual_info(message)
 
