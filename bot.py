@@ -61,7 +61,7 @@ async def get_energy_val() -> dict:
                     text_parser = data_parser(await resp.text())
                     db.save_json(text_parser)
                 else:
-                    logger.warn(resp.status, await resp.json())
+                    logger.warn(f"Error in get energy val: {resp.status}")
                     text_parser = {'data': None}
         except aiohttp.client.ClientError as e:
             logger.error(f'Error: {e}')
