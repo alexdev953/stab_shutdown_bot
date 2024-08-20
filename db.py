@@ -56,8 +56,8 @@ class DataBase:
 
     def __init__(self):
         self.con = self.connect()
-        self.first_start()
         self.sql_strings = SqlString()
+        self.first_start()
 
     def connect(self) -> sqlite3.Connection:
         con = sqlite3.connect('bot.db')
