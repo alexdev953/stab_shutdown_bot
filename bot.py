@@ -185,12 +185,13 @@ async def take_group(query: types.CallbackQuery):
     msg = await group_detailed(group, energy)
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard)
+        await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
     except exceptions.MessageNotModified as edit_error:
         logger.error(f'Message not edit: {edit_error}')
+        await query.answer("Сталася помилка при оновленні 😢", cache_time=3)
     except exceptions.MessageToEditNotFound:
         logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
         await query.message.answer(text=msg, reply_markup=keyboard)
-    finally:
         await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
 
 
