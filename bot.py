@@ -117,9 +117,9 @@ async def group_detailed(group: str, data: dict):
             row = []
     detailed_str = '\n\n'.join(detailed)
     finally_msg = (f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}\n\n"
-                   f"✅- <code>Заживлено: {delta_on} год.</code>\n"
-                   f"❌- <code>Відключено: {delta_off} год.</code>\n"
-                   f"🤷🏻- <code>Можливо заживлено: {delta_other} год.</code>"
+                   f"✅- <code>Заживлено: </code><b>{delta_on} год.</b>\n"
+                   f"❌- <code>Відключено: </code><b>{delta_off} год.</b>\n"
+                   f"🤷🏻- <code>Можливо заживлено: </code><b>{delta_other} год.</b>"
                    f"\n\n<b>Станом на:</b> <code>{data.get('actual')}</code>")
     return finally_msg
 
