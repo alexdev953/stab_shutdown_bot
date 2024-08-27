@@ -81,7 +81,6 @@ async def make_inline_keyboard(data: dict, hour: str, group: str = ''):
             if len(width) == 2:
                 keyboard.row(*width)
                 width = []
-
     if group:
         keyboard.add(InlineKeyboardButton(text='🔄 Оновити групу 🔄',
                                           callback_data=group))
@@ -104,7 +103,12 @@ async def group_detailed(group: str, data: dict):
     detailed = []
     row = []
     now_time = datetime.now()
-    for k, v in data.get('data').get(group).items():
+    group_data = data.get('data').get(group)
+    group_data_list = list(group_data.values())
+    delta_on = group_data_list.count(True)
+    delta_off = group_data_list.count(False)
+    delta_other = group_data_list.count(None)
+    for k, v in group_data.items():
         time_json = time(hour=int(k))
         time_str = await format_time(now_time, time_json, int(k))
         row.append(f"{time_str}{status_emoji.get(v)}")
@@ -113,7 +117,9 @@ async def group_detailed(group: str, data: dict):
             row = []
     detailed_str = '\n\n'.join(detailed)
     finally_msg = (f"🏙️<b><u>Група {group}</u></b>\n\n{detailed_str}\n\n"
-                   f"✅- <code>Заживлені</code> ❌- <code>Відключені</code>\n🤷🏻- <code>Можливо заживлені</code>"
+                   f"✅- <code>Заживлено: {delta_on} год.</code>\n"
+                   f"❌- <code>Відключено: {delta_off} год.</code>\n"
+                   f"🤷🏻- <code>Можливо заживлено: {delta_other} год.</code>"
                    f"\n\n<b>Станом на:</b> <code>{data.get('actual')}</code>")
     return finally_msg
 
