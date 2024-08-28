@@ -182,6 +182,20 @@ async def take_now_cmd(message: types.Message):
     await actual_info(message)
 
 
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    filters.Command('help', ignore_case=True))
+async def take_help(message: types.Message):
+    await message.answer('Якщо у вас є зауваження до роботи бота або побажання по удосконаленню\n'
+                         'напишіть мені використовуючи команду\n👇👇👇👇👇👇👇👇\n/report <i>ТЕКСТ ПОВІДОМЛЕННЯ</i>\n\n'
+                         '<code>ver. 2024.08.005</code>')
+
+
+@dp.message_handler(lambda message: db.check_user(message.from_user),
+                    filters.Command('report', ignore_case=True))
+async def take_report(message: types.Message):
+    await bot.send_message(379210271, message.text)
+
+
 @dp.callback_query_handler(lambda message: db.check_user(message.from_user),
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
