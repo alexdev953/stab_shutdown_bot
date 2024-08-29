@@ -1,12 +1,13 @@
 from bs4 import BeautifulSoup
 import requests
 
-# resp = requests.get('')
+resp = requests.get('https://oblenergo.cv.ua/shutdowns/')
 
 
 def data_parser(data: str) -> dict:
     soap = BeautifulSoup(data, "html.parser")
     actual_date = soap.find('div', {'id': 'gsv_t'}).find('b').text
+    next_day = soap.find('div', {'id': 'gsv_t'}).find('a')
     actual_time = soap.find('div', {'id': 'gsv_a'}).find('b').text
     data_div = soap.find('div', {"id": "gsv"}).find('div').find_all('div')
     status_dict = {'мз': None, 'в': False, 'з': True}
@@ -21,4 +22,10 @@ def data_parser(data: str) -> dict:
     return {"data": power_data,
             "actual_date": actual_date,
             "actual_time": actual_time,
-            "actual": f"{actual_date} {actual_time}"}
+            "actual": f"{actual_date} {actual_time}",
+            "next_day": next_day.text if next_day else next_day}
+
+
+print(data_parser(resp.text))
+
+

@@ -149,12 +149,15 @@ async def actual_info(message: types.Message):
     await message.answer(msg, reply_markup=keyboard)
 
 
-async def create_short_keyboard(group: str):
+async def create_short_keyboard(group: str, next_day: str):
     keyboard = InlineKeyboardMarkup()
     keyboard.add(InlineKeyboardButton(text="🔽 Всі групи 🔽",
                                       callback_data='groups'))
     keyboard.add(InlineKeyboardButton(text='🔄 Оновити групу 🔄',
                                       callback_data=f'grp@{group}'))
+    if next_day:
+        keyboard.add(InlineKeyboardButton(text=next_day,
+                                          callback_data=f'next@{group}'))
     keyboard.add(InlineKeyboardButton(text='🏙️ Дізнатися групу 🏙️',
                                       url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
@@ -191,7 +194,6 @@ async def take_help(message: types.Message):
     await actual_info(message)
 
 
-
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     filters.Command('report', ignore_case=True))
 async def take_report(message: types.Message):
@@ -206,7 +208,7 @@ async def take_report(message: types.Message):
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy, date = await get_energy()
-    keyboard = await create_short_keyboard(group)
+    keyboard = await create_short_keyboard(group, energy.get('next_day'))
     msg = await group_detailed(group, energy)
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard)
@@ -251,6 +253,12 @@ async def get_groups(query: types.CallbackQuery):
         await query.message.edit_reply_markup(reply_markup=keyboard)
     await query.answer('🔽 Всі групи 🔽', cache_time=3)
 
+
+@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+                           text_startswith=['next'])
+async def take_next(query: types.CallbackQuery):
+    print(query.data)
+    pass
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     filters.Text)
