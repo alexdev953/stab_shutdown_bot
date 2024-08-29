@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
-import requests
+# import requests
 
-resp = requests.get('https://oblenergo.cv.ua/shutdowns/')
+# resp = requests.get('https://oblenergo.cv.ua/shutdowns/')
 
 
 def data_parser(data: str) -> dict:

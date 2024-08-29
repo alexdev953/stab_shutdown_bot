@@ -32,7 +32,7 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
                                ).row(KeyboardButton('Стан 💡'))
 
 
-async def get_energy():
+async def get_energy(**kwargs):
     data = db.get_json()
     if data.get('data'):
         logger.debug('Get data from DB!')
@@ -41,7 +41,7 @@ async def get_energy():
         logger.debug('Get last actual from DB!')
         return get_last_actual_db()
     else:
-        actual_data = await get_energy_val()
+        actual_data = await get_energy_val(**kwargs)
         if actual_data.get('actual_date') == datetime.now().strftime('%d.%m.%Y'):
             return actual_data, actual_data.get('actual')
         else:
@@ -53,10 +53,11 @@ def get_last_actual_db():
     return last_actual, last_actual.get('actual')
 
 
-async def get_energy_val() -> dict:
+async def get_energy_val(next_day:bool = False) -> dict:
+    uri = API_URL+'?next' if next_day else API_URL
     async with aiohttp.ClientSession(conn_timeout=5, headers=HEADERS) as session:
         try:
-            async with session.get(API_URL, ssl=False) as resp:
+            async with session.get(uri, ssl=False) as resp:
                 if resp.ok:
                     text_parser = data_parser(await resp.text())
                     db.save_json(text_parser)
@@ -258,7 +259,7 @@ async def get_groups(query: types.CallbackQuery):
                            text_startswith=['next'])
 async def take_next(query: types.CallbackQuery):
     print(query.data)
-    pass
+    get_energy_val(True)
 
 @dp.message_handler(lambda message: db.check_user(message.from_user),
                     filters.Text)
