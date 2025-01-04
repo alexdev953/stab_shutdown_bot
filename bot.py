@@ -1,4 +1,5 @@
 import asyncio
+import json
 from datetime import datetime, time
 from Config import config_data as config
 import aiohttp
@@ -8,10 +9,10 @@ from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 from web_utils import data_parser
 from Logger import logger
 from db import DataBase
+from redisDb import r
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
-db = DataBase()
 
 BOT_TOKEN, CHAT_ID, API_URL = config.get_start_values()
 
@@ -32,8 +33,8 @@ firs_key = ReplyKeyboardMarkup(resize_keyboard=True,
                                ).row(KeyboardButton('Стан 💡'))
 
 
-async def get_energy(**kwargs):
-    data = db.get_json()
+async def get_energy_old(**kwargs):
+    data = DataBase().get_json()
     if data.get('data'):
         logger.debug('Get data from DB!')
         return data, data.get('actual')
@@ -48,19 +49,37 @@ async def get_energy(**kwargs):
             return get_last_actual_db()
 
 
-def get_last_actual_db():
-    last_actual = db.get_last_actual()
+async def get_energy():
+    get_red_val = r.get('energy')
+    if get_red_val:
+        logger.debug(f'get from red db: {get_red_val}')
+        red_json_data = json.loads(get_red_val)
+        return red_json_data, red_json_data.get('actual')
+    else:
+        actual_data = await get_energy_val(False)
+        logger.debug(f'get from API: {actual_data}')
+        if not actual_data.get('data'):
+            return await get_last_actual_db()
+        return actual_data, actual_data.get('actual')
+
+
+async def get_last_actual_db():
+    last_actual = DataBase().get_last_actual()
     return last_actual, last_actual.get('actual')
 
 
-async def get_energy_val(next_day:bool = False) -> dict:
-    uri = API_URL+'?next' if next_day else API_URL
+async def get_energy_val(next_day: bool = False) -> dict:
+    uri = API_URL + '?next' if next_day else API_URL
     async with aiohttp.ClientSession(conn_timeout=5, headers=HEADERS) as session:
         try:
             async with session.get(uri, ssl=False) as resp:
                 if resp.ok:
                     text_parser = data_parser(await resp.text())
-                    db.save_json(text_parser)
+                    if text_parser:
+                        r.set('energy', json.dumps(text_parser), ex=1500)
+                        DataBase().save_json(text_parser)
+                    else:
+                        text_parser = {'data': None}
                 else:
                     logger.error(f"Error in get energy val: {resp.status}")
                     text_parser = {'data': None}
@@ -156,15 +175,15 @@ async def create_short_keyboard(group: str, next_day: str):
                                       callback_data='groups'))
     keyboard.add(InlineKeyboardButton(text='🔄 Оновити групу 🔄',
                                       callback_data=f'grp@{group}'))
-    if next_day:
-        keyboard.add(InlineKeyboardButton(text=next_day,
-                                          callback_data=f'next@{group}'))
+    # if next_day:
+    #     keyboard.add(InlineKeyboardButton(text=next_day,
+    #                                       callback_data=f'next@{group}'))
     keyboard.add(InlineKeyboardButton(text='🏙️ Дізнатися групу 🏙️',
                                       url="https://oblenergo.cv.ua/shutdowns2/"))
     return keyboard
 
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     commands=['start'])
 async def take_start(message: types.Message):
     about_bot = await bot.get_me()
@@ -174,19 +193,19 @@ async def take_start(message: types.Message):
     await actual_info(message)
 
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     filters.Text(equals='Стан 💡'))
 async def take_now(message: types.Message):
     await actual_info(message)
 
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     filters.Command('now', ignore_case=True))
 async def take_now_cmd(message: types.Message):
     await actual_info(message)
 
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     filters.Command('help', ignore_case=True))
 async def take_help(message: types.Message):
     await message.answer('Якщо у вас є зауваження до роботи бота або побажання по удосконаленню '
@@ -195,7 +214,7 @@ async def take_help(message: types.Message):
     await actual_info(message)
 
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     filters.Command('report', ignore_case=True))
 async def take_report(message: types.Message):
     clear_msg = message.text.replace("/report ", "")
@@ -204,7 +223,7 @@ async def take_report(message: types.Message):
     await bot.send_message(379210271, report_msg)
 
 
-@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+@dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),
                            text_startswith=['grp'])
 async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
@@ -223,7 +242,7 @@ async def take_group(query: types.CallbackQuery):
         await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
 
 
-@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+@dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),
                            text_startswith=['upd'])
 async def take_update(query: types.CallbackQuery):
     energy, date = await get_energy()
@@ -241,7 +260,7 @@ async def take_update(query: types.CallbackQuery):
         await query.answer('Дані оновлено ✅', cache_time=3)
 
 
-@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+@dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),
                            text_startswith=['groups'])
 async def get_groups(query: types.CallbackQuery):
     energy, date = await get_energy()
@@ -255,13 +274,14 @@ async def get_groups(query: types.CallbackQuery):
     await query.answer('🔽 Всі групи 🔽', cache_time=3)
 
 
-@dp.callback_query_handler(lambda message: db.check_user(message.from_user),
+@dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),
                            text_startswith=['next'])
 async def take_next(query: types.CallbackQuery):
     print(query.data)
     get_energy_val(True)
 
-@dp.message_handler(lambda message: db.check_user(message.from_user),
+
+@dp.message_handler(lambda message: DataBase().check_user(message.from_user),
                     filters.Text)
 async def get_all_msg(message: types.Message):
     logger.info(message.as_json())
@@ -276,7 +296,7 @@ async def member_catch(update: types.ChatMemberUpdated):
     user_id = update.from_user.id
     member_status = update.new_chat_member.status
     if member_status == types.ChatMemberStatus.KICKED or member_status == types.ChatMemberStatus.MEMBER:
-        db.chat_member(user_id, update.new_chat_member.status)
+        DataBase().chat_member(user_id, update.new_chat_member.status)
 
 
 @dp.errors_handler()

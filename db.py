@@ -9,7 +9,6 @@ member_status = {"kicked": 0,
 
 
 class SqlString:
-
     first_sql: str = """create table if not exists users (
     user_id integer primary key autoincrement,
     first_name text,
@@ -36,8 +35,8 @@ create table if not exists power_data_tbl
     update_member_sql: str = ("update users set member = ?, updated = datetime(current_timestamp, 'localtime') "
                               "where telegram_id = ?")
     insert_power_sql: str = "insert into power_data_tbl(pow_data, actual_date, actual_time) values(?,?,?);"
-    exist_next_sql:str = ("select exists(select actual_date from power_data_tbl where "
-                          "actual_date = strftime('%d.%m.%Y', 'now', 'localtime', '+1 day')) as next_day")
+    exist_next_sql: str = ("select exists(select actual_date from power_data_tbl where "
+                           "actual_date = strftime('%d.%m.%Y', 'now', 'localtime', '+1 day')) as next_day")
     get_power_sql: str = """select power_data_tbl.pow_data
         ,exists(select actual_date from power_data_tbl where actual_date = strftime('%d.%m.%Y', 'now', 'localtime', '+1 day')) as next_day
         from power_data_tbl
