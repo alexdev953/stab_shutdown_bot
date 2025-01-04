@@ -210,7 +210,7 @@ async def take_now_cmd(message: types.Message):
 async def take_help(message: types.Message):
     await message.answer('Якщо у вас є зауваження до роботи бота або побажання по удосконаленню '
                          'напишіть мені використовуючи команду\n👇👇👇👇👇👇👇👇\n/report <i>ТЕКСТ ПОВІДОМЛЕННЯ</i>\n\n'
-                         '<code>ver. 2024.08.005</code>')
+                         '<code>ver. 2025.01.002</code>')
     await actual_info(message)
 
 
