@@ -8,8 +8,9 @@ from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMa
 from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 from web_utils import data_parser
 from Logger import logger
-from db import DataBase
+from db import DataBase, get_json, save_json
 from redisDb import r
+from env_data import __version__
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
@@ -59,7 +60,7 @@ async def get_energy():
         actual_data = await get_energy_val(False)
         logger.debug(f'get from API: {actual_data}')
         if not actual_data.get('data'):
-            return await get_last_actual_db()
+            return await get_json()
         return actual_data, actual_data.get('actual')
 
 
@@ -77,7 +78,8 @@ async def get_energy_val(next_day: bool = False) -> dict:
                     text_parser = data_parser(await resp.text())
                     if text_parser:
                         r.set('energy', json.dumps(text_parser), ex=1500)
-                        DataBase().save_json(text_parser)
+                        # DataBase().save_json(text_parser)
+                        await save_json(text_parser)
                     else:
                         text_parser = {'data': None}
                 else:
@@ -112,7 +114,8 @@ async def make_inline_keyboard(data: dict, hour: str, group: str = ''):
     return keyboard
 
 
-async def create_keyboard(data: dict, group: str = '') -> tuple[bool, types.inline_keyboard.InlineKeyboardMarkup]:
+async def create_keyboard(data: dict, group: str = '') -> (
+        tuple)[bool, types.inline_keyboard.InlineKeyboardMarkup]:
     hour = datetime.now().strftime('%H')
     keyboard = await make_inline_keyboard(data, str(hour), group)
     status = True if data.get('data') else False
@@ -210,7 +213,7 @@ async def take_now_cmd(message: types.Message):
 async def take_help(message: types.Message):
     await message.answer('Якщо у вас є зауваження до роботи бота або побажання по удосконаленню '
                          'напишіть мені використовуючи команду\n👇👇👇👇👇👇👇👇\n/report <i>ТЕКСТ ПОВІДОМЛЕННЯ</i>\n\n'
-                         '<code>ver. 2025.01.002</code>')
+                         f'<code>ver. {__version__}</code>')
     await actual_info(message)
 
 
@@ -235,7 +238,7 @@ async def take_group(query: types.CallbackQuery):
         await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
     except exceptions.MessageNotModified as edit_error:
         logger.error(f'Message not edit: {edit_error}')
-        await query.answer("Сталася помилка при оновленні 😢", cache_time=3)
+        await query.answer("Вже оновлено 😌", cache_time=3)
     except exceptions.MessageToEditNotFound:
         logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
         await query.message.answer(text=msg, reply_markup=keyboard)

@@ -1,5 +1,7 @@
 import sqlite3
 from typing import Optional
+
+import aiosqlite
 from aiogram.types import User
 import json
 from Logger import logger
@@ -117,5 +119,18 @@ class DataBase:
         cur = self.con.cursor()
         cur.execute(self.sql_strings.get_actual_power_sql)
         info = cur.fetchone()
+        logger.debug(info)
+        return json.loads(info[0])
+
+
+async def save_json(data):
+    async with aiosqlite.connect('bot.db') as db:
+        await db.execute(SqlString.insert_power_sql, (json.dumps(data), data.get('actual_date'), data.get('actual_time')))
+        await db.commit()
+
+async def get_json():
+    async with aiosqlite.connect('bot.db') as db:
+        cursor = await db.execute(SqlString.get_actual_power_sql)
+        info = await cursor.fetchone()
         logger.debug(info)
         return json.loads(info[0])
