@@ -234,15 +234,16 @@ async def take_group(query: types.CallbackQuery):
     keyboard = await create_short_keyboard(group, energy.get('next_day'))
     msg = await group_detailed(group, energy)
     try:
-        await query.message.edit_text(text=msg, reply_markup=keyboard)
-        await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
+        message_answer = await query.message.edit_text(text=msg, reply_markup=keyboard)
+        if message_answer:
+            await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
     except exceptions.MessageNotModified as edit_error:
         logger.error(f'Message not edit: {edit_error}')
         await query.answer("Вже оновлено 😌", cache_time=3)
     except exceptions.MessageToEditNotFound:
         logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
         await query.message.answer(text=msg, reply_markup=keyboard)
-        await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
+        await query.answer(f'🏙️Група: {group}', cache_time=3)
 
 
 @dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),

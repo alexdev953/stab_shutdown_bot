@@ -4,7 +4,7 @@ import logging
 
 class Config:
     config_obj = None
-    logger_level = 'DEBUG'
+    logger_level = 'INFO'
 
     def load_config(self) -> configparser.ConfigParser:
         config = configparser.ConfigParser()
