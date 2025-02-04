@@ -122,10 +122,11 @@ async def create_keyboard(data: dict, group: str = '') -> (
     return status, keyboard
 
 
-async def group_detailed(group: str, group_data: dict):
+async def group_detailed(group: str, data: dict):
     detailed = []
     row = []
     now_time = datetime.now()
+    group_data = data.get('data').get(group)
     group_data_list = list(group_data.values())
     delta_on = group_data_list.count(True)
     delta_off = group_data_list.count(False)
@@ -142,7 +143,7 @@ async def group_detailed(group: str, group_data: dict):
                    f"✅- <code>Заживлено: </code><b>{delta_on} год.</b>\n"
                    f"❌- <code>Відключено: </code><b>{delta_off} год.</b>\n"
                    f"🤷🏻- <code>Можливо заживлено: </code><b>{delta_other} год.</b>"
-                   f"\n\n<b>Станом на:</b> <code>{group_data.get('actual')}</code>")
+                   f"\n\n<b>Станом на:</b> <code>{data.get('actual')}</code>")
     return finally_msg
 
 
@@ -232,8 +233,7 @@ async def take_group(query: types.CallbackQuery):
     energy, date = await get_energy()
     keyboard = await create_short_keyboard(group, energy.get('next_day'))
     if energy.get('data').get(group):
-        group_energy_data = energy.get('data').get(group)
-        msg = await group_detailed(group, group_energy_data)
+        msg = await group_detailed(group, energy)
         try:
             message_answer = await query.message.edit_text(text=msg, reply_markup=keyboard)
             if message_answer:
