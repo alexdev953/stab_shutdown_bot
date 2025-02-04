@@ -122,11 +122,10 @@ async def create_keyboard(data: dict, group: str = '') -> (
     return status, keyboard
 
 
-async def group_detailed(group: str, data: dict):
+async def group_detailed(group: str, group_data: dict):
     detailed = []
     row = []
     now_time = datetime.now()
-    group_data = data.get('data').get(group)
     group_data_list = list(group_data.values())
     delta_on = group_data_list.count(True)
     delta_off = group_data_list.count(False)
@@ -232,19 +231,22 @@ async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy, date = await get_energy()
     keyboard = await create_short_keyboard(group, energy.get('next_day'))
-    msg = await group_detailed(group, energy)
-    try:
-        message_answer = await query.message.edit_text(text=msg, reply_markup=keyboard)
-        if message_answer:
-            await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
-    except exceptions.MessageNotModified as edit_error:
-        logger.error(f'Message not edit: {edit_error}')
-        await query.answer("Вже оновлено 😌", cache_time=3)
-    except exceptions.MessageToEditNotFound:
-        logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
-        await query.message.answer(text=msg, reply_markup=keyboard)
-        await query.answer(f'🏙️Група: {group}', cache_time=3)
-
+    if data.get('data').get(group):
+        group_energy_data = data.get('data').get(group)
+        msg = await group_detailed(group, group_energy_data)
+        try:
+            message_answer = await query.message.edit_text(text=msg, reply_markup=keyboard)
+            if message_answer:
+                await query.answer(f'✅Оновлено 🏙️Група: {group}', cache_time=3)
+        except exceptions.MessageNotModified as edit_error:
+            logger.error(f'Message not edit: {edit_error}')
+            await query.answer("Вже оновлено 😌", cache_time=3)
+        except exceptions.MessageToEditNotFound:
+            logger.error(f"MessageToEditNotFound:\n{query.as_json()}")
+            await query.message.answer(text=msg, reply_markup=keyboard)
+            await query.answer(f'🏙️Група: {group}', cache_time=3)
+    else:
+        await actual_info(query.message)
 
 @dp.callback_query_handler(lambda message: DataBase().check_user(message.from_user),
                            text_startswith=['upd'])
