@@ -142,7 +142,7 @@ async def group_detailed(group: str, group_data: dict):
                    f"✅- <code>Заживлено: </code><b>{delta_on} год.</b>\n"
                    f"❌- <code>Відключено: </code><b>{delta_off} год.</b>\n"
                    f"🤷🏻- <code>Можливо заживлено: </code><b>{delta_other} год.</b>"
-                   f"\n\n<b>Станом на:</b> <code>{data.get('actual')}</code>")
+                   f"\n\n<b>Станом на:</b> <code>{group_data.get('actual')}</code>")
     return finally_msg
 
 
