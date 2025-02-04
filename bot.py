@@ -231,8 +231,8 @@ async def take_group(query: types.CallbackQuery):
     group = query.data.split('@')[1]
     energy, date = await get_energy()
     keyboard = await create_short_keyboard(group, energy.get('next_day'))
-    if data.get('data').get(group):
-        group_energy_data = data.get('data').get(group)
+    if energy.get('data').get(group):
+        group_energy_data = energy.get('data').get(group)
         msg = await group_detailed(group, group_energy_data)
         try:
             message_answer = await query.message.edit_text(text=msg, reply_markup=keyboard)
